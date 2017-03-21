@@ -1,4 +1,14 @@
-﻿using System;
+﻿
+//
+// Project Name:  readPad        - Sample C Sharp code using windows forms to create a simple text/rich text editor
+//
+// Copyright (C) <2017> <Robert A. Davis>
+// All rights reserved.
+//
+// This software may be modified and distributed under the terms
+// of the MIT license.  See the LICENSE.TXT file for details.
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
