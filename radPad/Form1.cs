@@ -102,9 +102,9 @@ namespace radPad
                 dr = MessageBox.Show(saveFilePrompt, saveFileTitle, MessageBoxButtons.YesNoCancel);
                 if (dr == DialogResult.Yes)
                     if (String.IsNullOrEmpty(curFileName))
-                        SaveFile(true);
+                        dr = SaveFile(true);
                     else
-                        SaveFile(false);
+                        dr = SaveFile(false);
             }
             else dr = DialogResult.Yes;  // if file has not been change return yes to continue on
             return dr; 
@@ -161,8 +161,9 @@ namespace radPad
             this.Close();
         }
 
-        private void SaveFile(bool needNewName)
+        private DialogResult SaveFile(bool needNewName)
         {
+            DialogResult dr = DialogResult.OK;
             // see if a filename is needed and prompt the user
             if (needNewName)
             {
@@ -176,29 +177,29 @@ namespace radPad
                 sfd.DefaultExt = richTextFile;
                 sfd.AddExtension = true;
                 sfd.RestoreDirectory = true;
-                DialogResult dr = sfd.ShowDialog();
+                dr = sfd.ShowDialog();
                 if (dr == DialogResult.OK)
                 {
                     curFileName = RemoveNetworkPath(sfd.FileName);// save the user selected file name
                     UpdateFileInfo(curFileName);
                 }
-                else
-                    return;  // user changed their mind
             }
-
-            try
+            if (!String.IsNullOrEmpty(curFileName))
             {
-                if (Path.GetExtension(curFileName).Equals(richTextFile, StringComparison.OrdinalIgnoreCase))
-                    richTextBox1.SaveFile(curFileName);
-                else
-                    richTextBox1.SaveFile(curFileName, RichTextBoxStreamType.PlainText);  // non rich text files need special flag
-                fileChanged = false;
+                try
+                {
+                    if (Path.GetExtension(curFileName).Equals(richTextFile, StringComparison.OrdinalIgnoreCase))
+                        richTextBox1.SaveFile(curFileName);
+                    else
+                        richTextBox1.SaveFile(curFileName, RichTextBoxStreamType.PlainText);  // non rich text files need special flag
+                    fileChanged = false;
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show(e.Message);
+                }
             }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
-                return;
-            }
+            return dr;
         }
 
         private void OpenFile(string fn)
@@ -548,12 +549,15 @@ namespace radPad
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            CheckSave();
-            Properties.Settings.Default.SavePosInfo = String.Format("{0}{1}{2}{3}{4}{5}{6}", this.Location.X, delimiter[0],
-                         this.Location.Y, delimiter[0], this.Size.Width, delimiter[0], this.Size.Height);
-
-            string s = Properties.Settings.Default.SavePosInfo;
-            Properties.Settings.Default.Save();
+            DialogResult dr = CheckSave();
+            if (dr == DialogResult.Cancel)
+                e.Cancel = true;
+            else
+            {
+                Properties.Settings.Default.SavePosInfo = String.Format("{0}{1}{2}{3}{4}{5}{6}", this.Location.X, delimiter[0],
+                           this.Location.Y, delimiter[0], this.Size.Width, delimiter[0], this.Size.Height);
+                Properties.Settings.Default.Save();
+            }
         }
     }
 }
